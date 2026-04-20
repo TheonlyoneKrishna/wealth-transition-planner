@@ -4,7 +4,7 @@ A comprehensive, interactive financial planning application built for Ontario-ba
 
 Built with Python and Streamlit. All calculations verified against 2026 CRA data.
 
-**Live Demo:** [Launch App](https://your-app-url.streamlit.app) ← we'll update this after deployment
+**Live Demo:** [Launch App](https://wealth-transition-planner-c2kot39re4uanmzsfqrpzj.streamlit.app)
 
 ---
 
