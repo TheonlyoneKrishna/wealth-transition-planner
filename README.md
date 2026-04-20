@@ -10,7 +10,7 @@ Built with Python and Streamlit. All calculations verified against 2026 CRA data
 
 ## What This Tool Does
 
-Most financial planning tools model retirement in isolation. This application models the complete wealth transition — from business sale through retirement to estate — as one integrated picture.
+Most financial planning tools model retirement in isolation. This application models the complete wealth transition - from business sale through retirement to estate - as one integrated picture.
 
 A business owner selling their company faces a cascade of interconnected decisions: How much tax will the sale trigger? How do I use my Lifetime Capital Gains Exemption? When should I start drawing down my RRSP before CPP and OAS arrive? At what age should I start CPP to maximize lifetime income? What does my estate look like at death after all taxes?
 
@@ -22,7 +22,7 @@ This tool answers all of those questions simultaneously, with every assumption v
 
 ### 1. Business Sale Analysis
 - Calculates gross capital gain from business sale
-- Applies Lifetime Capital Gains Exemption (LCGE) — dynamic input up to $1,250,000
+- Applies Lifetime Capital Gains Exemption (LCGE) - dynamic input up to $1,250,000
 - Computes Federal + Ontario tax on the taxable gain using 2026 progressive brackets
 - Projects net after-tax proceeds to retirement using future value calculations
 - Models RRSP and TFSA contributions compounding over the pre-retirement period
