@@ -1,0 +1,23 @@
+{
+  "client_name": "David Chen",
+  "client_age": 45,
+  "proceeds": 3500000,
+  "cost_base": 500000,
+  "lcge_available": 1250000,
+  "retirement_age": 60,
+  "life_expectancy": 90,
+  "annual_spending": 120000,
+  "mean_return": 6.03,
+  "cpp_start_age": 65,
+  "oas_start_age": 65,
+  "rrsp_balance_today": 0,
+  "tfsa_balance_today": 0,
+  "tfsa_lump_sum": 109000,
+  "current_tfsa_room": 109000,
+  "annual_rrsp_contrib": 18000,
+  "annual_tfsa_contrib": 7000,
+  "employment_income": 80000,
+  "std_return": 12.0,
+  "mean_inflation": 2.5,
+  "std_inflation": 1.0
+}

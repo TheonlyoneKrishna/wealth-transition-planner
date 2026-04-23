@@ -1,0 +1,23 @@
+{
+  "client_name": "Sarah Chen",
+  "client_age": 44,
+  "proceeds": 0,
+  "cost_base": 0,
+  "lcge_available": 0,
+  "retirement_age": 60,
+  "life_expectancy": 90,
+  "annual_spending": 80000,
+  "mean_return": 6.0,
+  "cpp_start_age": 65,
+  "oas_start_age": 65,
+  "rrsp_balance_today": 450000,
+  "tfsa_balance_today": 198000,
+  "tfsa_lump_sum": 0,
+  "current_tfsa_room": 0,
+  "annual_rrsp_contrib": 22000,
+  "annual_tfsa_contrib": 7000,
+  "employment_income": 120000,
+  "std_return": 12.0,
+  "mean_inflation": 2.5,
+  "std_inflation": 1.0
+}

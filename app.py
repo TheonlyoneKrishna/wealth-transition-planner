@@ -13,6 +13,7 @@ from rrsp_module import rrsp_meltdown
 from cpp_oas_module import calculate_cap_monthly, calculate_oas_monthly, CPP_MAX_AGE_65, OAS_MAX_AGE_65
 from monte_carlo import run_monte_carlo
 from cashflow_module import run_cashflow
+from client_manager import get_saved_clients, save_client, load_client, delete_client
 
 # ── Page config ──────────────────────────────────────────────
 st.set_page_config(
@@ -194,44 +195,178 @@ st.markdown("""
 <hr>
 """, unsafe_allow_html=True)
 
+# ── Session state defaults ────────────────────────────────────
+# These hold the current values across Streamlit reruns
+# Only set once on first load — never overwrite user's live inputs
+defaults = {
+    "client_name":        "New Client",
+    "client_age":         45,
+    "proceeds":           0,
+    "cost_base":          0,
+    "lcge_available":     0,
+    "retirement_age":     60,
+    "life_expectancy":    90,
+    "annual_spending":    80000,
+    "mean_return":        6.0,
+    "cpp_start_age":      65,
+    "oas_start_age":      65,
+    "rrsp_balance_today": 0,
+    "tfsa_balance_today": 0,
+    "tfsa_lump_sum":      0,
+    "has_business":       True,
+    "non_reg_balance_today":  0,
+    "current_tfsa_room":  109000,
+    "annual_rrsp_contrib":18000,
+    "annual_tfsa_contrib":7000,
+    "employment_income":  80000,
+    "std_return":         12.0,
+    "mean_inflation":     2.5,
+    "std_inflation":      1.0,
+}
+for key, val in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = val
+
+# ── Sidebar: Client Manager ───────────────────────────────────
+st.sidebar.markdown("### Client Manager")
+
+saved_clients = get_saved_clients()
+selected_client = st.sidebar.selectbox(
+    "Saved Clients",
+    options=["— select a client —"] + saved_clients,
+    key="selected_client"
+)
+
+cm1, cm2, cm3, cm4 = st.sidebar.columns(4)
+
+if cm1.button("Load", use_container_width=True):
+    if selected_client != "— select a client —":
+        data = load_client(selected_client)
+        if data:
+            for key, val in data.items():
+                st.session_state[key] = val
+            st.sidebar.success(f"Loaded {selected_client}")
+        else:
+            st.sidebar.error("Client file not found")
+    else:
+        st.sidebar.warning("Select a client first")
+
+if cm2.button("Save", use_container_width=True):
+    if st.session_state["client_name"].strip() == "" or st.session_state["client_name"] == "New Client":
+        st.sidebar.warning("Enter a client name first")
+    else:
+        save_data = {k: st.session_state[k] for k in defaults.keys()}
+        save_client(st.session_state["client_name"], save_data)
+        st.sidebar.success(f"Saved {st.session_state['client_name']}")
+
+if cm3.button("New", use_container_width=True):
+    for key, val in defaults.items():
+        st.session_state[key] = val
+    st.sidebar.success("Ready for new client")
+
+if cm4.button("Del", use_container_width=True):
+    if selected_client != "— select a client —":
+        delete_client(selected_client)
+        st.sidebar.success(f"Deleted {selected_client}")
+    else:
+        st.sidebar.warning("Select a client to delete")
+
+st.sidebar.markdown("---")
+
 # ── Sidebar: Client Inputs ────────────────────────────────────
 st.sidebar.header("Client Profile")
 
-client_name = st.sidebar.text_input("Client Name", value="David Chen")
-client_age  = st.sidebar.slider("Current Age", 35, 65, 45)
+client_name = st.sidebar.text_input("Client Name",
+    value=st.session_state["client_name"],
+    key="client_name")
+client_age = st.sidebar.slider("Current Age", 18, 85,
+    value=st.session_state["client_age"],
+    key="client_age")
 
 st.sidebar.subheader("Business Details")
-proceeds           = st.sidebar.number_input("Business Sale Proceeds ($)", value=3500000, step=50000)
-cost_base          = st.sidebar.number_input("Adjusted Cost Base ($)", value=500000, step=10000)
-lcge_available     = st.sidebar.number_input(
-    "Remaining LCGE Room ($)", 
-    value = 1250000,
-    min_value = 0,
-    max_value = 1250000,
-    step = 50000)
+has_business = st.sidebar.checkbox("Client has a business sale",
+    value=st.session_state.get("has_business", True),
+    key="has_business")
+
+if has_business:
+    proceeds = st.sidebar.number_input("Business Sale Proceeds ($)",
+        value=st.session_state["proceeds"], step=50000, min_value=0,
+        key="proceeds")
+    cost_base = st.sidebar.number_input("Adjusted Cost Base ($)",
+        value=st.session_state["cost_base"], step=10000, min_value=0,
+        key="cost_base")
+    lcge_available = st.sidebar.number_input("Remaining LCGE Room ($)",
+        value=st.session_state["lcge_available"],
+        min_value=0, max_value=1250000, step=50000,
+        key="lcge_available")
+else:
+    proceeds      = 0
+    cost_base     = 0
+    lcge_available = 0
 
 st.sidebar.subheader("Retirement Assumptions")
-retirement_age   = st.sidebar.slider("Target Retirement Age", 55, 70, 60)
-life_expectancy  = st.sidebar.slider("Life Expectancy", 75, 100, 90)
-annual_spending  = st.sidebar.number_input("Annual Retirement Spending ($)", value=120000, step=5000)
-mean_return      = st.sidebar.slider("Expected Portfolio Return (%)", 3.0, 10.0, 6.0) / 100
-cpp_start_age    = st.sidebar.slider("CPP Start Age", 60, 70, 70)
-oas_start_age    = st.sidebar.slider("OAS Start Age", 65, 70, 65)
+retirement_age = st.sidebar.slider("Target Retirement Age", 18, 85,
+    value=st.session_state["retirement_age"],
+    key="retirement_age")
+life_expectancy = st.sidebar.slider("Life Expectancy", 1, 110,
+    value=st.session_state["life_expectancy"],
+    key="life_expectancy")
+annual_spending = st.sidebar.number_input("Annual Retirement Spending ($)",
+    value=st.session_state["annual_spending"], step=5000, min_value=0,
+    key="annual_spending")
+mean_return = st.sidebar.slider("Expected Portfolio Return (%)", 3.0, 10.0,
+    value=st.session_state["mean_return"],
+    key="mean_return") / 100
+cpp_start_age = st.sidebar.slider("CPP Start Age", 60, 70,
+    value=st.session_state["cpp_start_age"],
+    key="cpp_start_age")
+oas_start_age = st.sidebar.slider("OAS Start Age", 65, 70,
+    value=st.session_state["oas_start_age"],
+    key="oas_start_age")
 
 st.sidebar.subheader("Current Portfolio Balances")
-rrsp_balance_today  = st.sidebar.number_input("Current RRSP Balance ($)", value=800000, step=10000)
-tfsa_balance_today  = st.sidebar.number_input("Current TFSA Balance ($)", value=0, step=1000)
-current_tfsa_room   = st.sidebar.number_input("Current TFSA Room Available ($)", value=109000, min_value=0, max_value=500000, step=1000)
+rrsp_balance_today = st.sidebar.number_input("Current RRSP Balance ($)",
+    value=st.session_state["rrsp_balance_today"], step=10000, min_value=0,
+    key="rrsp_balance_today")
+tfsa_balance_today = st.sidebar.number_input("Current TFSA Balance ($)",
+    value=st.session_state["tfsa_balance_today"], step=1000, min_value=0,
+    key="tfsa_balance_today")
+non_reg_balance_today = st.sidebar.number_input("Current Non-Registered Balance ($)",
+    value=st.session_state.get("non_reg_balance_today",0), step=5000, min_value=0,
+    key="non_reg_balance_today")
+current_tfsa_room = st.sidebar.number_input("Current TFSA Room Available ($)",
+    value=st.session_state["current_tfsa_room"],
+    min_value=0, max_value=500000, step=1000,
+    key="current_tfsa_room")
+tfsa_lump_sum = st.sidebar.number_input("TFSA Lump Sum Contribution Today ($)",
+    value=st.session_state.get("tfsa_lump_sum",0),
+    min_value=0,
+    max_value=int(st.session_state["current_tfsa_room"]),
+    step=1000,
+    key="tfsa_lump_sum",
+    help="One-time contribution using exisiting unused room - applied immediately today")
 
 st.sidebar.subheader("Annual Contributions (Pre-Retirement)")
-annual_rrsp_contrib = st.sidebar.number_input("Annual RRSP Contribution ($)", value=18000, step=1000)
-annual_tfsa_contrib = st.sidebar.number_input("Annual TFSA Contribution ($)", value=7000, step=500)
-employment_income   = st.sidebar.number_input("Annual Employment Income ($)", value=80000, step=5000)
+annual_rrsp_contrib = st.sidebar.number_input("Annual RRSP Contribution ($)",
+    value=st.session_state["annual_rrsp_contrib"], step=1000, min_value=0,
+    key="annual_rrsp_contrib")
+annual_tfsa_contrib = st.sidebar.number_input("Annual TFSA Contribution ($)",
+    value=st.session_state["annual_tfsa_contrib"], step=500, min_value=0,
+    key="annual_tfsa_contrib")
+employment_income = st.sidebar.number_input("Annual Employment Income ($)",
+    value=st.session_state["employment_income"], step=5000, min_value=0,
+    key="employment_income")
 
 st.sidebar.subheader("Market Assumptions")
-std_return          = st.sidebar.slider("Portfolio Volatility / Std Dev (%)", 5.0, 20.0, 12.0) / 100
-mean_inflation      = st.sidebar.slider("Expected Inflation (%)", 1.0, 5.0, 2.5) / 100
-std_inflation       = st.sidebar.slider("Inflation Volatility (%)", 0.5, 3.0, 1.0) / 100
+std_return = st.sidebar.slider("Portfolio Volatility / Std Dev (%)", 5.0, 20.0,
+    value=st.session_state["std_return"],
+    key="std_return") / 100
+mean_inflation = st.sidebar.slider("Expected Inflation (%)", 1.0, 5.0,
+    value=st.session_state["mean_inflation"],
+    key="mean_inflation") / 100
+std_inflation = st.sidebar.slider("Inflation Volatility (%)", 0.5, 3.0,
+    value=st.session_state["std_inflation"],
+    key="std_inflation") / 100
 
 # ── Run All Calculations ──────────────────────────────────────
 
@@ -251,6 +386,10 @@ oas_annual      = oas_monthly * 12
 
 # Step 3: Cashflow engine — source of truth for all bucket balances
 # Runs year-by-year from today through death across all three buckets
+# Apply TFSA lump sum — added to balance today, reduces available room
+effective_tfsa_balance = tfsa_balance_today + tfsa_lump_sum
+effective_tfsa_room    = max(0, current_tfsa_room - tfsa_lump_sum)
+
 cashflow_rows = run_cashflow(
     client_age=client_age,
     retirement_age=retirement_age,
@@ -266,8 +405,9 @@ cashflow_rows = run_cashflow(
     cpp_start_age=cpp_start_age,
     oas_start_age=oas_start_age,
     annual_spending=annual_spending,
-    current_tfsa_room=current_tfsa_room,
-    tfsa_balance_today=tfsa_balance_today,
+    current_tfsa_room=effective_tfsa_room,
+    tfsa_balance_today=effective_tfsa_balance,
+    non_reg_balance_today=non_reg_balance_today,
 )
 
 # Step 4: Extract retirement-age balances from cashflow engine
@@ -287,7 +427,7 @@ rrsp_results = rrsp_meltdown(
     other_income=30000,
     annual_return=mean_return,
     target_income=117045,
-    current_tfsa_room=current_tfsa_room,
+    current_tfsa_room=effective_tfsa_room,
     years_to_retirement=(71 - client_age),
     annual_new_tfsa_room=7000
 )
@@ -341,42 +481,94 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # TAB 1 — OVERVIEW
 # ══════════════════════════════════════════════════════════════
 with tab1:
-    st.header(f"Business Sale Analysis — {client_name}")
+    st.header(f"{'Business Sale Analysis' if has_business else 'Financial Overview'} — {client_name}")
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Gross Proceeds", f"${proceeds:,.0f}")
-    col2.metric("Total Tax Owing", f"${total_tax:,.0f}")
-    col3.metric("Net After-Tax Proceeds", f"${net_proceeds:,.0f}")
-    col4.metric("LCGE Applied", f"${lcge_available:,.0f}")
+    if has_business:
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Gross Proceeds", f"${proceeds:,.0f}")
+        col2.metric("Total Tax Owing", f"${total_tax:,.0f}")
+        col3.metric("Net After-Tax Proceeds", f"${net_proceeds:,.0f}")
+        col4.metric("LCGE Applied", f"${lcge_available:,.0f}")
+    else:
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Employment Income (Annual)", f"${employment_income:,.0f}")
+        col2.metric("Projected Portfolio at Retirement", f"${portfolio_start:,.0f}")
+        col3.metric("Years to Retirement", f"{years_left} years")
 
-    col5, col6, col7 = st.columns(3)
-    col5.metric("Years to Retirement", f"{years_left} years")
-    col6.metric("Projected Portfolio at Retirement", f"${portfolio_start:,.0f}")
-    col7.metric("Effective Tax Rate on Sale", f"{round((total_tax/proceeds)*100,1)}%")
+    if has_business:
+        col5, col6, col7 = st.columns(3)
+        col5.metric("Years to Retirement", f"{years_left} years")
+        col6.metric("Projected Portfolio at Retirement", f"${portfolio_start:,.0f}")
+        effective_tax_rate = round((total_tax / proceeds) * 100, 1) if proceeds > 0 else 0
+        col7.metric("Effective Tax Rate on Sale", f"{effective_tax_rate}%")
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.subheader("Where Does the Money Go?")
 
-    fig_overview = go.Figure()
-    fig_overview.add_trace(go.Bar(
-        x=["Business Sale Proceeds", "Tax Owing (CRA)", "Net After-Tax Proceeds", "Portfolio at Retirement"],
-        y=[proceeds, total_tax, net_proceeds, portfolio_start],
-        marker_color=["#C9A84C", "#FF6B6B", "#2DD4A0", "#C9A84C"],
-        text=[f"${proceeds:,.0f}", f"${total_tax:,.0f}", f"${net_proceeds:,.0f}", f"${portfolio_start:,.0f}"],
-        textposition="outside",
-        textfont=dict(color="#F0F4FF", size=12)
-    ))
-    fig_overview.update_layout(
-        title="From Business Sale to Retirement Portfolio",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#F0F4FF',
-        height=450,
-        showlegend=False,
-        yaxis=dict(tickformat="$,.0f", gridcolor="rgba(201,168,76,0.1)"),
-        bargap=0.4
-    )
-    st.plotly_chart(fig_overview, width='stretch')
+    if has_business:
+        st.subheader("Where Does the Money Go?")
+        fig_overview = go.Figure()
+        fig_overview.add_trace(go.Bar(
+            x=["Business Sale Proceeds", "Tax Owing (CRA)", "Net After-Tax Proceeds", "Portfolio at Retirement"],
+            y=[proceeds, total_tax, net_proceeds, portfolio_start],
+            marker_color=["#C9A84C", "#FF6B6B", "#2DD4A0", "#C9A84C"],
+            text=[f"${proceeds:,.0f}", f"${total_tax:,.0f}", f"${net_proceeds:,.0f}", f"${portfolio_start:,.0f}"],
+            textposition="outside",
+            textfont=dict(color="#F0F4FF", size=12)
+        ))
+        fig_overview.update_layout(
+            title="From Business Sale to Retirement Portfolio",
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#F0F4FF',
+            height=450,
+            showlegend=False,
+            yaxis=dict(tickformat="$,.0f", gridcolor="rgba(201,168,76,0.1)"),
+            bargap=0.4
+        )
+        st.plotly_chart(fig_overview, width='stretch')
+   
+    else:
+        st.subheader("Portfolio Growth Projection")
+        st.caption("No business sale - portfolio built entirely from employment income and contributions")
+
+        fig_overview = go.Figure()
+
+        # Current values (today)
+        total_today = rrsp_balance_today + tfsa_balance_today + non_reg_balance_today
+        fig_overview.add_trace(go.Bar(
+            name='Today',
+            x=['RRSP', 'TFSA', 'Non-Registered', 'Total Portfolio'],
+            y=[rrsp_balance_today, tfsa_balance_today, non_reg_balance_today, total_today],
+            marker_color='rgba(139,163,199,0.6)',
+            text=[f"${rrsp_balance_today:,.0f}", f"${tfsa_balance_today:,.0f}", f"${non_reg_balance_today:,.0f}", f"${total_today:,.0f}"],
+            textposition="outside",
+            textfont=dict(color="#F0F4FF", size=11)
+        ))
+
+        # Retirement values
+        fig_overview.add_trace(go.Bar(
+            name='At Retirement',
+            x=['RRSP', 'TFSA', 'Non-Registered', 'Total Portfolio'],
+            y=[rrsp_at_retirement, tfsa_at_retirement, non_reg_at_retirement, portfolio_start],
+            marker_color=["#e74c3c", "#2DD4A0", "#4A23D5", "#C9A84C"],
+            text=[f"${rrsp_at_retirement:,.0f}", f"${tfsa_at_retirement:,.0f}", f"${non_reg_at_retirement:,.0f}", f"${portfolio_start:,.0f}"],
+            textposition="outside",
+            textfont=dict(color="#F0F4FF", size=11)
+        ))
+
+        fig_overview.update_layout(
+            title="Today's Balances vs Projected at Retirement — by Bucket",
+            barmode='group',
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_color="#F0F4FF",
+            height=480,
+            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+            yaxis=dict(tickformat="$,.0f", gridcolor="rgba(201,168,76,0.1)"),
+            bargap=0.3,
+            bargroupgap=0.1
+        )
+        st.plotly_chart(fig_overview, width='stretch')
 
 # ══════════════════════════════════════════════════════════════
 # TAB 2 — LIFETIME PROJECTION

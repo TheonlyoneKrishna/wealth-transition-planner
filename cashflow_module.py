@@ -35,11 +35,12 @@ def run_cashflow(
     annual_spending,      # annual retirement spending target
     current_tfsa_room,    # TFSA contribution room available today
     tfsa_balance_today,   # TFSA balance TODAY
+    non_reg_balance_today=0 #existing non-reg balance TODAY (separate from proceeds)
 ):
     rows = []
 
     # ── Starting balances (TODAY) ────────────────────────────
-    non_reg  = net_proceeds
+    non_reg  = net_proceeds + non_reg_balance_today
     rrsp     = rrsp_balance_today
     tfsa     = tfsa_balance_today
     tfsa_room = current_tfsa_room
@@ -100,6 +101,27 @@ def run_cashflow(
 
     # ── RETIREMENT ───────────────────────────────────────────
     # Each loop iteration = one 5-year period from retirement_age to life_expectancy
+    # Guard: if life_expectancy <= retirement_age, add one terminal row and return
+    if life_expectancy <= retirement_age:
+        rows.append({
+            'period':            f"Age {retirement_age}",
+            'phase':             'retirement',
+            'employment_income': 0,
+            'rrsp_contrib':      0,
+            'tfsa_contrib':      0,
+            'tax_owing':         0,
+            'cpp_income':        0,
+            'oas_income':        0,
+            'rrsp_withdrawal':   0,
+            'non_reg_withdrawal':0,
+            'tfsa_withdrawal':   0,
+            'rrsp_balance':      round(rrsp),
+            'tfsa_balance':      round(tfsa),
+            'non_reg_balance':   round(non_reg),
+            'total_net_worth':   round(rrsp + tfsa + non_reg)
+        })
+        return rows
+
     age = retirement_age
     while age < life_expectancy:
         period_end = min(age + 5, life_expectancy)
