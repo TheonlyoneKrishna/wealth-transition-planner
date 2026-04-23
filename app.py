@@ -21,8 +21,177 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🇨🇦 Canadian Business Owner Wealth Transition Planner")
-st.caption("Built for Ontario-based HNW clients | 2026 Tax Year | All calculations verified against CRA data")
+# ── Custom CSS Theme ──────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── Root variables ── */
+:root {
+    --navy:      #0B1426;
+    --navy-mid:  #112240;
+    --navy-card: #1A2F4A;
+    --gold:      #C9A84C;
+    --gold-light:#E8C97A;
+    --white:     #F0F4FF;
+    --muted:     #8BA3C7;
+    --success:   #2DD4A0;
+    --danger:    #FF6B6B;
+    --border:    rgba(201,168,76,0.2);
+}
+
+/* ── Global background ── */
+.stApp {
+    background: linear-gradient(135deg, #0B1426 0%, #0D1B35 50%, #0B1426 100%);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--white);
+}
+
+/* ── Sidebar ── */
+[data-testid="stSidebar"] {
+    background: var(--navy-mid) !important;
+    border-right: 1px solid var(--border);
+}
+[data-testid="stSidebar"] .stMarkdown p,
+[data-testid="stSidebar"] label {
+    color: var(--muted) !important;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    color: var(--gold) !important;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin-top: 20px;
+}
+
+/* ── Main title ── */
+h1 {
+    font-family: 'Playfair Display', serif !important;
+    color: var(--white) !important;
+    font-size: 2.2rem !important;
+    letter-spacing: -0.02em;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 12px;
+    margin-bottom: 4px !important;
+}
+
+/* ── Section headers ── */
+h2 {
+    font-family: 'Playfair Display', serif !important;
+    color: var(--gold-light) !important;
+    font-size: 1.4rem !important;
+    letter-spacing: 0.01em;
+    margin-top: 2rem !important;
+}
+
+h3 {
+    font-family: 'DM Sans', sans-serif !important;
+    color: var(--muted) !important;
+    font-size: 0.85rem !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* ── Metric cards ── */
+[data-testid="stMetric"] {
+    background: var(--navy-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px !important;
+    transition: border-color 0.2s ease;
+}
+[data-testid="stMetric"]:hover {
+    border-color: var(--gold);
+}
+[data-testid="stMetricLabel"] {
+    color: var(--muted) !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+[data-testid="stMetricValue"] {
+    color: var(--white) !important;
+    font-family: 'Playfair Display', serif !important;
+    font-size: 1.6rem !important;
+    font-weight: 600;
+}
+[data-testid="stMetricDelta"] {
+    font-size: 0.78rem !important;
+}
+
+/* ── Caption ── */
+.stCaption {
+    color: var(--muted) !important;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+}
+
+/* ── Plotly chart backgrounds ── */
+.js-plotly-plot {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+/* ── Dataframe table ── */
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ── Number inputs & sliders ── */
+[data-testid="stNumberInput"] input {
+    background: var(--navy) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--white) !important;
+    border-radius: 8px !important;
+    font-family: 'DM Sans', sans-serif;
+}
+[data-testid="stSlider"] [data-baseweb="slider"] [role="slider"] {
+    background: var(--gold) !important;
+}
+
+/* ── Dividers ── */
+hr {
+    border-color: var(--border) !important;
+    margin: 1.5rem 0;
+}
+
+/* ── Success/warning probability colors ── */
+.success-text { color: var(--success); }
+.warning-text { color: #F4A261; }
+.danger-text  { color: var(--danger); }
+
+/* ── Gold accent line before each section ── */
+h2::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 3px;
+    background: var(--gold);
+    margin-bottom: 8px;
+    border-radius: 2px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<h1>Canadian Business Owner<br>Wealth Transition Planner</h1>
+<p style='color:#8BA3C7; font-size:0.85rem; letter-spacing:0.05em; margin-top:-8px;'>
+    ONTARIO · 2026 TAX YEAR · CRA VERIFIED
+</p>
+<hr>
+""", unsafe_allow_html=True)
 
 # ── Sidebar: Client Inputs ────────────────────────────────────
 st.sidebar.header("Client Profile")
