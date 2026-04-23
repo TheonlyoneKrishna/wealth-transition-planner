@@ -120,9 +120,10 @@ h3 {
 }
 [data-testid="stMetricValue"] {
     color: var(--white) !important;
-    font-family: 'Playfair Display', serif !important;
-    font-size: 1.6rem !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 1.7rem !important;
     font-weight: 600;
+    letter-spacing: -0.02em;
 }
 [data-testid="stMetricDelta"] {
     font-size: 0.78rem !important;
@@ -307,112 +308,13 @@ mc_results = run_monte_carlo(
     std_inflation=std_inflation
 )
 
-# ── Section 1: Business Sale Summary ─────────────────────────
-st.header(f"📋 Business Sale Analysis — {client_name}")
-
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Gross Proceeds", f"${proceeds:,.0f}")
-col2.metric("Total Tax Owing", f"${total_tax:,.0f}")
-col3.metric("Net After-Tax Proceeds", f"${net_proceeds:,.0f}")
-col4.metric("LCGE Applied", "Yes ✅" if lcge_available else "No ❌")
-
-col5, col6, col7 = st.columns(3)
-col5.metric("Years to Retirement", f"{years_left} years")
-col6.metric("Projected Portfolio at Retirement", f"${portfolio_start:,.0f}")
-col7.metric("Effective Tax Rate on Sale", f"{round((total_tax/proceeds)*100,1)}%")
-
-# ── Section 2: RRSP Meltdown ──────────────────────────────────
-st.header("🏦 RRSP Meltdown Strategy")
-
-rrsp_df = pd.DataFrame(rrsp_results)
-final_tfsa = rrsp_df['tfsa_accumulated'].iloc[-1]
-final_rrsp = rrsp_df['rrsp_balance'].iloc[-1]
-
-final_non_reg = rrsp_df['non_reg_accumulated'].iloc[-1]
-col8, col9, col9b = st.columns(3)
-col8.metric("TFSA Accumulated (tax-free)", f"${final_tfsa:,.0f}")
-col9.metric("Non-Registered Overflow", f"${final_non_reg:,.0f}")
-col9b.metric("Remaining RRSP Balance", f"${final_rrsp:,.0f}")
-
-fig_rrsp = go.Figure()
-fig_rrsp.add_trace(go.Bar(
-    x=rrsp_df['age'],
-    y=rrsp_df['rrsp_balance'],
-    name='RRSP Balance',
-    marker_color='#e74c3c'
-))
-fig_rrsp.add_trace(go.Bar(
-    x=rrsp_df['age'],
-    y=rrsp_df['tfsa_accumulated'],
-    name='TFSA Accumulated',
-    marker_color='#27ae60'
-))
-fig_rrsp.add_trace(go.Bar(
-    x=rrsp_df['age'],
-    y=rrsp_df['non_reg_accumulated'],
-    name='Non-Registered Overflow',
-    marker_color='#2980b9'
-))
-fig_rrsp.update_layout(
-    title="RRSP Drawdown vs TFSA Growth",
-    barmode='group',
-    xaxis_title="Age",
-    yaxis_title="Balance ($)",
-    height=400
-)
-st.plotly_chart(fig_rrsp, width='stretch')
-
-# ── Section 3: CPP / OAS ──────────────────────────────────────
-st.header("🏛️ CPP & OAS Summary")
-
-col10, col11, col12 = st.columns(3)
-col10.metric("Monthly CPP", f"${cpp_monthly:,.2f}", f"Starting age {cpp_start_age}")
-col11.metric("Monthly OAS", f"${oas_monthly:,.2f}", f"Starting age {oas_start_age}")
-col12.metric("Combined Annual Gov't Income", f"${cpp_annual + oas_annual:,.0f}")
-
-# ── Section 4: Monte Carlo ────────────────────────────────────
-st.header("📊 Monte Carlo Retirement Simulation")
-
-success = mc_results['probability_of_success']
-color   = "green" if success >= 90 else "orange" if success >= 75 else "red"
-
-st.markdown(f"""
-<h2 style='text-align:center; color:{color};'>
-    Probability of Success: {success}%
-</h2>
-<p style='text-align:center;'>{mc_results['success_count']} of {mc_results['total_scenarios']} scenarios fully funded to age {life_expectancy}</p>
-""", unsafe_allow_html=True)
-
-years_axis = mc_results['years']
-fig_mc = go.Figure()
-fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p90'],
-    fill=None, line=dict(color='rgba(39,174,96,0.3)'), name='90th percentile'))
-fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p75'],
-    fill='tonexty', line=dict(color='rgba(39,174,96,0.5)'), name='75th percentile'))
-fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p50'],
-    fill='tonexty', line=dict(color='#2c3e50', width=2), name='Median'))
-fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p25'],
-    fill='tonexty', line=dict(color='rgba(231,76,60,0.5)'), name='25th percentile'))
-fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p10'],
-    fill='tonexty', line=dict(color='rgba(231,76,60,0.3)'), name='10th percentile'))
-fig_mc.update_layout(
-    title=f"Portfolio Projection — 1,000 Scenarios",
-    xaxis_title="Age",
-    yaxis_title="Portfolio Value ($)",
-    height=500
-)
-st.plotly_chart(fig_mc, width='stretch')
-
-col13, col14, col15 = st.columns(3)
-col13.metric("Median Portfolio at 90", f"${mc_results['percentiles']['p50'][-1]:,.0f}")
-col14.metric("Best 10% at 90",         f"${mc_results['percentiles']['p90'][-1]:,.0f}")
-col15.metric("Worst 10% at 90",        f"${mc_results['percentiles']['p10'][-1]:,.0f}")
-
-rrsp_df    = pd.DataFrame(rrsp_results)
-final_tfsa = rrsp_df['tfsa_accumulated'].iloc[-1]
-final_rrsp = rrsp_df['rrsp_balance'].iloc[-1]
+# Step 7: RRSP meltdown summary variables
+rrsp_df       = pd.DataFrame(rrsp_results)
+final_tfsa    = rrsp_df['tfsa_accumulated'].iloc[-1]
+final_rrsp    = rrsp_df['rrsp_balance'].iloc[-1]
 final_non_reg = rrsp_df['non_reg_accumulated'].iloc[-1]
 
+# Step 8: Estate projection — uses cashflow-derived balances
 estate_results = calculate_estate(
     portfolio_value=non_reg_at_retirement,
     rrsp_remaining=final_rrsp,
@@ -425,100 +327,371 @@ estate_results = calculate_estate(
     oas_annual=oas_annual
 )
 
-# ── Section 4b: Lifetime Cash Flow Table + Stacked Net Worth ──
-st.header("📅 Lifetime Financial Projection")
-st.caption("5-year snapshots from today through life expectancy across all three buckets")
+# ── Tabs ─────────────────────────────────────────────────────
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "📋 Overview",
+    "📅 Lifetime Projection", 
+    "🏦 Retirement Strategy",
+    "📊 Monte Carlo",
+    "🏛️ Estate Planning",
+    "⚖️ Scenario Comparison"
+])
 
-cf_df = pd.DataFrame(cashflow_rows)
+# ══════════════════════════════════════════════════════════════
+# TAB 1 — OVERVIEW
+# ══════════════════════════════════════════════════════════════
+with tab1:
+    st.header(f"Business Sale Analysis — {client_name}")
 
-# ── Stacked Net Worth Chart ───────────────────────────────────
-fig_nw = go.Figure()
-fig_nw.add_trace(go.Bar(
-    x=cf_df['period'],
-    y=cf_df['rrsp_balance'],
-    name='RRSP / RRIF',
-    marker_color='#e74c3c'
-))
-fig_nw.add_trace(go.Bar(
-    x=cf_df['period'],
-    y=cf_df['tfsa_balance'],
-    name='TFSA (tax-free)',
-    marker_color='#27ae60'
-))
-fig_nw.add_trace(go.Bar(
-    x=cf_df['period'],
-    y=cf_df['non_reg_balance'],
-    name='Non-Registered',
-    marker_color='#2980b9'
-))
-fig_nw.update_layout(
-    title="Projected Net Worth by Bucket — Lifetime View",
-    barmode='stack',
-    xaxis_title="Period",
-    yaxis_title="Balance ($)",
-    height=500,
-    legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
-)
-st.plotly_chart(fig_nw, width='stretch')
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Gross Proceeds", f"${proceeds:,.0f}")
+    col2.metric("Total Tax Owing", f"${total_tax:,.0f}")
+    col3.metric("Net After-Tax Proceeds", f"${net_proceeds:,.0f}")
+    col4.metric("LCGE Applied", f"${lcge_available:,.0f}")
 
-# ── Cash Flow Table ───────────────────────────────────────────
-st.subheader("Period-by-Period Breakdown")
+    col5, col6, col7 = st.columns(3)
+    col5.metric("Years to Retirement", f"{years_left} years")
+    col6.metric("Projected Portfolio at Retirement", f"${portfolio_start:,.0f}")
+    col7.metric("Effective Tax Rate on Sale", f"{round((total_tax/proceeds)*100,1)}%")
 
-# Build display table
-display_rows = []
-for r in cashflow_rows:
-    display_rows.append({
-        'Period':           r['period'],
-        'Phase':            r['phase'].replace('-', ' ').title(),
-        'Employment ($)':   f"${r['employment_income']:,}" if r['employment_income'] > 0 else '—',
-        'CPP ($)':          f"${r['cpp_income']:,}" if r['cpp_income'] > 0 else '—',
-        'OAS ($)':          f"${r['oas_income']:,}" if r['oas_income'] > 0 else '—',
-        'RRSP W/D ($)':     f"${r['rrsp_withdrawal']:,}" if r['rrsp_withdrawal'] > 0 else '—',
-        'Non-Reg W/D ($)':  f"${r['non_reg_withdrawal']:,}" if r['non_reg_withdrawal'] > 0 else '—',
-        'TFSA W/D ($)':     f"${r['tfsa_withdrawal']:,}" if r['tfsa_withdrawal'] > 0 else '—',
-        'Tax Owing ($)':    f"${r['tax_owing']:,}",
-        'RRSP Bal ($)':     f"${r['rrsp_balance']:,}",
-        'TFSA Bal ($)':     f"${r['tfsa_balance']:,}",
-        'Non-Reg Bal ($)':  f"${r['non_reg_balance']:,}",
-        'Net Worth ($)':    f"${r['total_net_worth']:,}",
-    })
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.subheader("Where Does the Money Go?")
 
-display_df = pd.DataFrame(display_rows)
-st.dataframe(display_df, use_container_width=True, hide_index=True)
+    fig_overview = go.Figure()
+    fig_overview.add_trace(go.Bar(
+        x=["Business Sale Proceeds", "Tax Owing (CRA)", "Net After-Tax Proceeds", "Portfolio at Retirement"],
+        y=[proceeds, total_tax, net_proceeds, portfolio_start],
+        marker_color=["#C9A84C", "#FF6B6B", "#2DD4A0", "#C9A84C"],
+        text=[f"${proceeds:,.0f}", f"${total_tax:,.0f}", f"${net_proceeds:,.0f}", f"${portfolio_start:,.0f}"],
+        textposition="outside",
+        textfont=dict(color="#F0F4FF", size=12)
+    ))
+    fig_overview.update_layout(
+        title="From Business Sale to Retirement Portfolio",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#F0F4FF',
+        height=450,
+        showlegend=False,
+        yaxis=dict(tickformat="$,.0f", gridcolor="rgba(201,168,76,0.1)"),
+        bargap=0.4
+    )
+    st.plotly_chart(fig_overview, width='stretch')
 
-# ── Section 5: Estate Projection ─────────────────────────────
-st.header("🏛️ Estate Projection at Death")
+# ══════════════════════════════════════════════════════════════
+# TAB 2 — LIFETIME PROJECTION
+# ══════════════════════════════════════════════════════════════
+with tab2:
+    st.header("Lifetime Financial Projection")
+    st.caption("5-year snapshots from today through life expectancy across all three buckets")
 
-col16, col17, col18 = st.columns(3)
-col16.metric("Gross Estate", f"${estate_results['gross_estate']:,.0f}")
-col17.metric("Total Tax at Death", f"${estate_results['total_tax_at_death']:,.0f}")
-col18.metric("Net Estate to Heirs", f"${estate_results['net_estate']:,.0f}")
+    cf_df = pd.DataFrame(cashflow_rows)
 
-col19, col20, col21 = st.columns(3)
-col19.metric("Projected Portfolio", f"${estate_results['projected_portfolio']:,.0f}")
-col20.metric("TFSA to Heirs (tax-free)", f"${estate_results['tfsa_to_heirs']:,.0f}")
-col21.metric("Tax on RRSP at Death", f"${estate_results['rrsp_tax']:,.0f}")
+    fig_nw = go.Figure()
+    fig_nw.add_trace(go.Bar(x=cf_df['period'], y=cf_df['rrsp_balance'],
+        name='RRSP / RRIF', marker_color='#e74c3c'))
+    fig_nw.add_trace(go.Bar(x=cf_df['period'], y=cf_df['tfsa_balance'],
+        name='TFSA (tax-free)', marker_color='#2DD4A0'))
+    fig_nw.add_trace(go.Bar(x=cf_df['period'], y=cf_df['non_reg_balance'],
+        name='Non-Registered', marker_color='#C9A84C'))
+    fig_nw.update_layout(
+        title="Projected Net Worth by Bucket — Lifetime View",
+        barmode='stack',
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#F0F4FF',
+        xaxis_title="Period",
+        yaxis_title="Balance ($)",
+        height=500,
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
+    )
+    st.plotly_chart(fig_nw, width='stretch')
 
-# Estate breakdown chart
-fig_estate = go.Figure(go.Pie(
-    labels=[
-        "Portfolio to Heirs (after tax)",
-        "TFSA to Heirs (tax-free)",
-        "RRSP Net to Heirs (after tax)",
-        "Tax Paid at Death"
-    ],
-    values=[
-        estate_results['projected_portfolio'] - estate_results['portfolio_tax'],
-        estate_results['tfsa_to_heirs'],
-        estate_results['rrsp_remaining'] - estate_results['rrsp_tax'],
-        estate_results['total_tax_at_death']
-    ],
-    marker_colors=["#2980b9", "#27ae60", "#8e44ad", "#e74c3c"],
-    hole=0.4
-))
-fig_estate.update_layout(
-    title=f"Estate Composition at Age {life_expectancy} — What Goes Where",
-    height=450
-)
-st.plotly_chart(fig_estate, width='stretch')
+    st.subheader("Period-by-Period Breakdown")
+    display_rows = []
+    for r in cashflow_rows:
+        display_rows.append({
+            'Period':           r['period'],
+            'Phase':            r['phase'].replace('-', ' ').title(),
+            'Employment ($)':   f"${r['employment_income']:,}" if r['employment_income'] > 0 else '—',
+            'CPP ($)':          f"${r['cpp_income']:,}" if r['cpp_income'] > 0 else '—',
+            'OAS ($)':          f"${r['oas_income']:,}" if r['oas_income'] > 0 else '—',
+            'RRSP W/D ($)':     f"${r['rrsp_withdrawal']:,}" if r['rrsp_withdrawal'] > 0 else '—',
+            'Non-Reg W/D ($)':  f"${r['non_reg_withdrawal']:,}" if r['non_reg_withdrawal'] > 0 else '—',
+            'TFSA W/D ($)':     f"${r['tfsa_withdrawal']:,}" if r['tfsa_withdrawal'] > 0 else '—',
+            'Tax Owing ($)':    f"${r['tax_owing']:,}",
+            'RRSP Bal ($)':     f"${r['rrsp_balance']:,}",
+            'TFSA Bal ($)':     f"${r['tfsa_balance']:,}",
+            'Non-Reg Bal ($)':  f"${r['non_reg_balance']:,}",
+            'Net Worth ($)':    f"${r['total_net_worth']:,}",
+        })
+    display_df = pd.DataFrame(display_rows)
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+# ══════════════════════════════════════════════════════════════
+# TAB 3 — RETIREMENT STRATEGY
+# ══════════════════════════════════════════════════════════════
+with tab3:
+    st.header("RRSP Meltdown Strategy")
+
+    final_non_reg = rrsp_df['non_reg_accumulated'].iloc[-1]
+    col8, col9, col9b = st.columns(3)
+    col8.metric("TFSA Accumulated (tax-free)", f"${final_tfsa:,.0f}")
+    col9.metric("Non-Registered Overflow", f"${final_non_reg:,.0f}")
+    col9b.metric("Remaining RRSP Balance", f"${final_rrsp:,.0f}")
+
+    fig_rrsp = go.Figure()
+    fig_rrsp.add_trace(go.Bar(x=rrsp_df['age'], y=rrsp_df['rrsp_balance'],
+        name='RRSP Balance', marker_color='#e74c3c'))
+    fig_rrsp.add_trace(go.Bar(x=rrsp_df['age'], y=rrsp_df['tfsa_accumulated'],
+        name='TFSA Accumulated', marker_color='#2DD4A0'))
+    fig_rrsp.add_trace(go.Bar(x=rrsp_df['age'], y=rrsp_df['non_reg_accumulated'],
+        name='Non-Registered Overflow', marker_color='#C9A84C'))
+    fig_rrsp.update_layout(
+        title="RRSP Drawdown vs TFSA Growth",
+        barmode='group',
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#F0F4FF',
+        xaxis_title="Age",
+        yaxis_title="Balance ($)",
+        height=400
+    )
+    st.plotly_chart(fig_rrsp, width='stretch')
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.header("CPP & OAS Summary")
+
+    col10, col11, col12 = st.columns(3)
+    col10.metric("Monthly CPP", f"${cpp_monthly:,.2f}", f"Starting age {cpp_start_age}")
+    col11.metric("Monthly OAS", f"${oas_monthly:,.2f}", f"Starting age {oas_start_age}")
+    col12.metric("Combined Annual Gov't Income", f"${cpp_annual + oas_annual:,.0f}")
+
+# ══════════════════════════════════════════════════════════════
+# TAB 4 — MONTE CARLO
+# ══════════════════════════════════════════════════════════════
+with tab4:
+    st.header("Monte Carlo Retirement Simulation")
+
+    success = mc_results['probability_of_success']
+    color = "#2DD4A0" if success >= 90 else "#F4A261" if success >= 75 else "#FF6B6B"
+
+    st.markdown(f"""
+    <div style='text-align:center; padding:30px 0;'>
+        <div style='font-family:"Playfair Display",serif; font-size:3.5rem; color:{color}; font-weight:700; line-height:1;'>
+            {success}%
+        </div>
+        <div style='color:#8BA3C7; font-size:0.85rem; letter-spacing:0.1em; text-transform:uppercase; margin-top:8px;'>
+            Probability of Success
+        </div>
+        <div style='color:#8BA3C7; font-size:0.8rem; margin-top:4px;'>
+            {mc_results['success_count']} of {mc_results['total_scenarios']} scenarios fully funded to age {life_expectancy}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    years_axis = mc_results['years']
+    fig_mc = go.Figure()
+    fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p90'],
+        fill=None, line=dict(color='rgba(45,212,160,0.3)'), name='90th percentile'))
+    fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p75'],
+        fill='tonexty', line=dict(color='rgba(45,212,160,0.5)'), name='75th percentile'))
+    fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p50'],
+        fill='tonexty', line=dict(color='#C9A84C', width=2), name='Median'))
+    fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p25'],
+        fill='tonexty', line=dict(color='rgba(255,107,107,0.5)'), name='25th percentile'))
+    fig_mc.add_trace(go.Scatter(x=years_axis, y=mc_results['percentiles']['p10'],
+        fill='tonexty', line=dict(color='rgba(255,107,107,0.3)'), name='10th percentile'))
+    fig_mc.update_layout(
+        title=f"Portfolio Projection — 1,000 Scenarios",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#F0F4FF',
+        xaxis_title="Age",
+        yaxis_title="Portfolio Value ($)",
+        height=500
+    )
+    st.plotly_chart(fig_mc, width='stretch')
+
+    col13, col14, col15 = st.columns(3)
+    col13.metric("Median Portfolio at Death", f"${mc_results['percentiles']['p50'][-1]:,.0f}")
+    col14.metric("Best 10% at Death", f"${mc_results['percentiles']['p90'][-1]:,.0f}")
+    col15.metric("Worst 10% at Death", f"${mc_results['percentiles']['p10'][-1]:,.0f}")
+
+# ══════════════════════════════════════════════════════════════
+# TAB 5 — ESTATE PLANNING
+# ══════════════════════════════════════════════════════════════
+with tab5:
+    st.header(f"Estate Projection at Death — Age {life_expectancy}")
+
+    col16, col17, col18 = st.columns(3)
+    col16.metric("Gross Estate", f"${estate_results['gross_estate']:,.0f}")
+    col17.metric("Total Tax at Death", f"${estate_results['total_tax_at_death']:,.0f}")
+    col18.metric("Net Estate to Heirs", f"${estate_results['net_estate']:,.0f}")
+
+    col19, col20, col21 = st.columns(3)
+    col19.metric("Projected Portfolio", f"${estate_results['projected_portfolio']:,.0f}")
+    col20.metric("TFSA to Heirs (tax-free)", f"${estate_results['tfsa_to_heirs']:,.0f}")
+    col21.metric("Tax on RRSP at Death", f"${estate_results['rrsp_tax']:,.0f}")
+
+    fig_estate = go.Figure(go.Pie(
+        labels=["Portfolio to Heirs (after tax)", "TFSA to Heirs (tax-free)",
+                "RRSP Net to Heirs (after tax)", "Tax Paid at Death"],
+        values=[
+            estate_results['projected_portfolio'] - estate_results['portfolio_tax'],
+            estate_results['tfsa_to_heirs'],
+            estate_results['rrsp_remaining'] - estate_results['rrsp_tax'],
+            estate_results['total_tax_at_death']
+        ],
+        marker_colors=["#2980b9", "#2DD4A0", "#8e44ad", "#FF6B6B"],
+        hole=0.4
+    ))
+    fig_estate.update_layout(
+        title=f"Estate Composition at Age {life_expectancy} — What Goes Where",
+        paper_bgcolor='rgba(0,0,0,0)',
+        font_color='#F0F4FF',
+        height=450
+    )
+    st.plotly_chart(fig_estate, width='stretch')
+
+# ══════════════════════════════════════════════════════════════
+# TAB 6 — SCENARIO COMPARISON
+# ══════════════════════════════════════════════════════════════
+with tab6:
+    st.header("Scenario Comparison")
+    st.caption("Compare your base plan against an alternate set of assumptions")
+
+    # Quick-select buttons
+    st.subheader("Quick Scenarios")
+    col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+
+    scenario_preset = None
+    if col_s1.button("🕐 Early Retirement"):
+        scenario_preset = "early"
+    if col_s2.button("📉 Conservative Market"):
+        scenario_preset = "conservative"
+    if col_s3.button("📈 Aggressive Growth"):
+        scenario_preset = "aggressive"
+    if col_s4.button("💸 Higher Spending"):
+        scenario_preset = "spending"
+
+    # Scenario inputs
+    st.subheader("Custom Scenario Inputs")
+    sc1, sc2, sc3 = st.columns(3)
+
+    default_ret = retirement_age - 5 if scenario_preset == "early" else retirement_age
+    default_ret_return = 0.04 if scenario_preset == "conservative" else (0.08 if scenario_preset == "aggressive" else mean_return)
+    default_spending = annual_spending * 1.25 if scenario_preset == "spending" else annual_spending
+
+    s_retirement_age  = sc1.slider("Scenario Retirement Age", 50, 70, default_ret)
+    s_mean_return     = sc2.slider("Scenario Portfolio Return (%)", 2.0, 12.0, round(default_ret_return*100,1)) / 100
+    s_annual_spending = sc3.number_input("Scenario Annual Spending ($)", value=int(default_spending), step=5000)
+
+    # Run scenario calculations
+    s_years_left = years_to_goal(client_age, s_retirement_age)
+
+    s_cashflow_rows = run_cashflow(
+        client_age=client_age,
+        retirement_age=s_retirement_age,
+        life_expectancy=life_expectancy,
+        employment_income=employment_income,
+        annual_rrsp_contrib=annual_rrsp_contrib,
+        annual_tfsa_contrib=annual_tfsa_contrib,
+        mean_return=s_mean_return,
+        net_proceeds=net_proceeds,
+        rrsp_balance_today=rrsp_balance_today,
+        cpp_annual=cpp_annual,
+        oas_annual=oas_annual,
+        cpp_start_age=cpp_start_age,
+        oas_start_age=oas_start_age,
+        annual_spending=s_annual_spending,
+        current_tfsa_room=current_tfsa_room,
+        tfsa_balance_today=tfsa_balance_today,
+    )
+
+    s_retirement_row = next(r for r in s_cashflow_rows if r['phase'] == 'retirement')
+    s_portfolio_start = s_retirement_row['rrsp_balance'] + s_retirement_row['tfsa_balance'] + s_retirement_row['non_reg_balance']
+
+    s_mc_results = run_monte_carlo(
+        portfolio_value=s_portfolio_start,
+        annual_spending=s_annual_spending,
+        cpp_annual=cpp_annual,
+        oas_annual=oas_annual,
+        cpp_start_age=cpp_start_age,
+        oas_start_age=oas_start_age,
+        retirement_age=s_retirement_age,
+        life_expectancy=life_expectancy,
+        mean_return=s_mean_return,
+        std_return=std_return,
+        mean_inflation=mean_inflation,
+        std_inflation=std_inflation
+    )
+
+    # Side-by-side comparison
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.subheader("Side-by-Side Results")
+
+    b1, b2, b3 = st.columns(3)
+    b1.metric("Base — Portfolio at Retirement", f"${portfolio_start:,.0f}")
+    b2.metric("Scenario — Portfolio at Retirement", f"${s_portfolio_start:,.0f}",
+        delta=f"${s_portfolio_start - portfolio_start:,.0f}")
+    b3.metric("Difference", f"${abs(s_portfolio_start - portfolio_start):,.0f}",
+        delta="Scenario better" if s_portfolio_start > portfolio_start else "Base better")
+
+    b4, b5, b6 = st.columns(3)
+    b4.metric("Base — Success Rate", f"{mc_results['probability_of_success']}%")
+    b5.metric("Scenario — Success Rate", f"{s_mc_results['probability_of_success']}%",
+        delta=f"{round(s_mc_results['probability_of_success'] - mc_results['probability_of_success'],1)}%")
+    b6.metric("Base Retirement Age", f"{retirement_age}",
+        delta=f"Scenario: {s_retirement_age}")
+
+    # Overlay Monte Carlo chart
+    s_years_axis = s_mc_results['years']
+    fig_compare = go.Figure()
+
+    # Base plan median
+    fig_compare.add_trace(go.Scatter(
+        x=years_axis, y=mc_results['percentiles']['p50'],
+        line=dict(color='#C9A84C', width=2.5, dash='solid'),
+        name='Base — Median'
+    ))
+    fig_compare.add_trace(go.Scatter(
+        x=years_axis, y=mc_results['percentiles']['p10'],
+        fill=None, line=dict(color='rgba(201,168,76,0.0)'), name='Base — 10th pct',
+        showlegend=False
+    ))
+    fig_compare.add_trace(go.Scatter(
+        x=years_axis, y=mc_results['percentiles']['p90'],
+        fill='tonexty', line=dict(color='rgba(201,168,76,0.0)'), name='Base — Range',
+        fillcolor='rgba(201,168,76,0.15)'
+    ))
+
+    # Scenario median
+    fig_compare.add_trace(go.Scatter(
+        x=s_years_axis, y=s_mc_results['percentiles']['p50'],
+        line=dict(color='#2DD4A0', width=2.5, dash='solid'),
+        name='Scenario — Median'
+    ))
+    fig_compare.add_trace(go.Scatter(
+        x=s_years_axis, y=s_mc_results['percentiles']['p10'],
+        fill=None, line=dict(color='rgba(45,212,160,0.0)'), name='Scenario — 10th pct',
+        showlegend=False
+    ))
+    fig_compare.add_trace(go.Scatter(
+        x=s_years_axis, y=s_mc_results['percentiles']['p90'],
+        fill='tonexty', line=dict(color='rgba(45,212,160,0.0)'), name='Scenario — Range',
+        fillcolor='rgba(45,212,160,0.15)'
+    ))
+
+    fig_compare.update_layout(
+        title="Base Plan vs Scenario — Portfolio Projection Overlay",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#F0F4FF',
+        xaxis_title="Age",
+        yaxis_title="Portfolio Value ($)",
+        height=500
+    )
+    st.plotly_chart(fig_compare, width='stretch')
+
 st.caption("This tool is for financial planning illustration purposes only. Not investment advice.")
