@@ -17,7 +17,7 @@ from client_manager import get_saved_clients, save_client, load_client, delete_c
 
 # ── Page config ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="Wealth Transition Planner",
+    page_title="Canadian Wealth Transition Planner",
     page_icon="💼",
     layout="wide"
 )
@@ -188,7 +188,7 @@ h2::before {
 """, unsafe_allow_html=True)
 
 st.markdown("""
-<h1>Canadian Business Owner<br>Wealth Transition Planner</h1>
+<h1>Canadian Wealth<br>Transition Planner</h1>
 <p style='color:#8BA3C7; font-size:0.85rem; letter-spacing:0.05em; margin-top:-8px;'>
     ONTARIO · 2026 TAX YEAR · CRA VERIFIED
 </p>
@@ -555,7 +555,7 @@ with tab1:
             textposition="outside",
             textfont=dict(color="#F0F4FF", size=11)
         ))
-
+    
         fig_overview.update_layout(
             title="Today's Balances vs Projected at Retirement — by Bucket",
             barmode='group',

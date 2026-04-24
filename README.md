@@ -1,68 +1,59 @@
-# 🇨🇦 Canadian Business Owner Wealth Transition Planner
+# 🇨🇦 Canadian Wealth Transition Planner
 
-A comprehensive, interactive financial planning application built for Ontario-based high-net-worth business owners navigating a business sale and retirement transition.
+An interactive, advisor-ready financial planning application for Canadian high-net-worth clients. Models the complete wealth lifecycle - from business sale through retirement to estate — in one integrated tool.
 
-Built with Python and Streamlit. All calculations verified against 2026 CRA data.
-
-**Live Demo:** [Launch App](https://wealth-transition-planner-c2kot39re4uanmzsfqrpzj.streamlit.app)
+**Live Demo:** [Launch App](https://wealth-transition-planner-c2kot39re4uanmzsfqrpzj.streamlit.app) · **GitHub:** [TheonlyoneKrishna](https://github.com/TheonlyoneKrishna/wealth-transition-planner)
 
 ---
 
 ## What This Tool Does
 
-Most financial planning tools model retirement in isolation. This application models the complete wealth transition - from business sale through retirement to estate - as one integrated picture.
+Most financial planning tools model retirement in isolation. This application integrates every major Canadian wealth planning decision into one live, interactive dashboard — with every assumption visible and adjustable in real time.
 
-A business owner selling their company faces a cascade of interconnected decisions: How much tax will the sale trigger? How do I use my Lifetime Capital Gains Exemption? When should I start drawing down my RRSP before CPP and OAS arrive? At what age should I start CPP to maximize lifetime income? What does my estate look like at death after all taxes?
-
-This tool answers all of those questions simultaneously, with every assumption visible and adjustable in real time.
+Supports both business owner clients (with LCGE and business sale modeling) and employed professionals (portfolio-only planning). Multi-client save/load functionality allows advisors to maintain a book of business directly within the app.
 
 ---
 
-## Modules
+## Six Integrated Modules
 
 ### 1. Business Sale Analysis
-- Calculates gross capital gain from business sale
-- Applies Lifetime Capital Gains Exemption (LCGE) - dynamic input up to $1,250,000
-- Computes Federal + Ontario tax on the taxable gain using 2026 progressive brackets
-- Projects net after-tax proceeds to retirement using future value calculations
-- Models RRSP and TFSA contributions compounding over the pre-retirement period
+Models the full tax impact of a business sale - gross capital gain, Lifetime Capital Gains Exemption (LCGE up to $1.25M), Federal + Ontario progressive tax on the taxable gain, and net after-tax proceeds flowing into the portfolio. Non-business clients see a bucket-by-bucket growth projection instead.
 
-### 2. RRSP Meltdown Strategy
-- Models systematic RRSP drawdown during low-income retirement years (age 60–71)
-- Targets annual income to fill lower tax brackets before CPP/OAS begin
-- Tracks CRA-compliant TFSA contribution room dynamically (current room + future annual limits)
-- Splits after-tax withdrawals between TFSA (tax-free) and non-registered overflow
-- Visualizes three-bucket strategy: RRSP declining, TFSA filling, non-registered growing
+### 2. Lifetime Cash Flow Engine
+The core of the application. Runs year-by-year from today through life expectancy across all three buckets (RRSP, TFSA, Non-Registered), producing 5-year period snapshots with full income, withdrawal, tax, and balance detail. All other modules receive their starting values from this engine - eliminating isolated calculations.
 
-### 3. CPP & OAS Optimizer
-- Models CPP monthly benefit at every start age from 60–70
-- Calculates actuarial adjustments: -0.6%/month before 65, +0.7%/month after 65
-- Computes breakeven age for early vs. delayed CPP start
-- Checks OAS clawback exposure based on total retirement income
-- Uses 2026 verified maximums: CPP $1,507.65/month, OAS $742.31/month
+### 3. RRSP Meltdown Strategy
+Models systematic RRSP drawdown during low-income retirement years, targeting the top of the second federal bracket to minimize lifetime tax. Tracks CRA-compliant TFSA contribution room dynamically - current room plus annual accumulation - splitting after-tax withdrawals between TFSA (tax-free) and non-registered overflow. Visualizes the three-bucket strategy year by year from retirement to age 71.
 
-### 4. Monte Carlo Retirement Simulation
-- Runs 1,000 retirement scenarios with randomized annual returns and inflation
-- Models sequence-of-returns risk across 30+ year retirement horizons
-- Outputs probability of success — percentage of scenarios fully funded to life expectancy
-- Displays fan chart showing 10th, 25th, 50th, 75th, and 90th percentile portfolio paths
-- Integrates CPP/OAS income timing into each scenario
+### 4. CPP & OAS Optimizer
+Models CPP monthly benefit at every start age from 60–70 using CRA actuarial adjustment rates (-0.6%/month before 65, +0.7%/month after 65). Calculates breakeven age for every early VS delayed comparison. Checks OAS clawback exposure based on projected total retirement income. Uses 2026 verified maximums: CPP $1,507.65/month, OAS $742.31/month.
 
-### 5. Estate Projection
-- Projects portfolio value from retirement to death
-- Models tax at death: income tax on remaining RRSP/RRIF, capital gains on non-registered
-- Shows TFSA passing tax-free to beneficiaries
-- Donut chart showing estate composition — what goes to heirs vs. CRA
+### 5. Monte Carlo Retirement Simulation
+Runs 1,000 retirement scenarios with randomized annual returns (normal distribution) and inflation, capturing sequence-of-returns risk across 30+ year horizons. Outputs probability of success and a fan chart showing 10th, 25th, 50th, 75th, and 90th percentile portfolio paths. All three market assumption inputs (return, volatility, inflation) are user-configurable.
+
+### 6. Estate Projection
+Projects portfolio value from retirement to death, modeling tax at death on RRSP/RRIF balance (fully taxable as income) and capital gains on non-registered portfolio (50% accrued gain assumption, 50% inclusion rate). TFSA passes tax-free to beneficiaries. Donut chart shows estate composition - what goes to heirs VS CRA.
+
+---
+
+## Additional Features
+
+- **Scenario Comparison tab** - run a full alternate scenario (different retirement age, return, or spending) alongside the base plan. Overlay Monte Carlo fan charts for direct visual comparison. Quick-select presets: Early Retirement, Conservative Market, Aggressive Growth, Higher Spending.
+- **Multi-client support** - save and load client profiles as JSON files. Advisor can maintain a full book of business and switch between clients with one click.
+- **Non-business client mode** - checkbox removes business sale inputs entirely and replaces the overview with a bucket-by-bucket growth comparison (today vs. at retirement).
+- **TFSA lump sum contribution** - models one-time use of accumulated unused contribution room, separate from annual contributions.
+- **Dynamic age ranges** - all age inputs accept values from 18 to 85+ to support any client life stage.
 
 ---
 
 ## Tech Stack
 
-- **Python 3.14** — core calculation engine
-- **Streamlit** — interactive web interface
-- **Plotly** — charts and visualizations
+- **Python 3.14** — core calculation engine across six modules
+- **Streamlit** — interactive web interface with tab navigation
+- **Plotly** — all charts (stacked bars, fan charts, donut, grouped bars)
 - **Pandas / NumPy** — data manipulation and Monte Carlo simulation
-- **All Canadian tax data verified against CRA 2026 published rates**
+- **JSON** — client profile persistence (no database required)
+- **All Canadian tax data verified against 2026 CRA published rates**
 
 ---
 
@@ -77,22 +68,32 @@ streamlit run app.py
 
 ---
 
-## Key Assumptions & Data Sources
+## Data Sources & Key Assumptions
 
-- Federal and Ontario tax brackets: 2026 CRA published rates
-- CPP maximum at 65: $1,507.65/month (Government of Canada, January 2026)
-- OAS maximum at 65: $742.31/month (Government of Canada, Q1 2026)
-- OAS clawback threshold: $95,323 net income (2026)
-- TFSA cumulative room: $109,000 (eligible since 2009) + $7,000/year going forward
-- LCGE limit: $1,250,000 for qualified small business corporation shares
-- Monte Carlo: normal distribution of returns, mean 6%, std 12%, inflation mean 2.5%
+| Item | Value | Source |
+|------|-------|--------|
+| Federal bottom rate | 14% | CRA 2026 |
+| Federal top rate | 33% (above $258,482) | CRA 2026 |
+| Ontario top rate | 13.16% (above $220,000) | CRA 2026 |
+| CPP maximum at 65 | $1,507.65/month | Government of Canada, Jan 2026 |
+| OAS maximum at 65 | $742.31/month | Government of Canada, Q1 2026 |
+| OAS clawback threshold | $95,323 net income | CRA 2026 |
+| LCGE limit | $1,250,000 | CRA 2026 (QSBC shares) |
+| TFSA cumulative room | $109,000 + $7,000/year | CRA 2026 |
+| RRIF minimum factors | Ages 65–95 per CRA table | CRA 2026 |
+| Monte Carlo returns | Normal distribution, configurable mean/std | User input |
 
 ---
 
-## Important Disclaimer
+## Project Structure
+
+---
+
+## Disclaimer
 
 This tool is for financial planning illustration purposes only. It does not constitute investment, tax, or legal advice. All projections are hypothetical. Consult a qualified financial advisor before making any financial decisions.
 
 ---
 
-*Built by Krishna Patel | Financial Planning Student, Seneca Polytechnic
+*Krishna Patel | Financial Planning Student, Seneca Polytechnic | CSC Certified*
+*[LinkedIn](https://www.linkedin.com/in/krishna-patel-7b1984344) · [Live App](https://wealth-transition-planner-c2kot39re4uanmzsfqrpzj.streamlit.app)*
