@@ -161,14 +161,26 @@ def run_cashflow(
             rrsp_withdrawal = rrif_min  # only mandatory minimum — meltdown handled separately
 
             # ── Spending gap calculation ─────────────────────
-            # How much still needs to come from investable assets?
-            gap = max(0, annual_spending - gov_income - rrsp_withdrawal)
+            # Withdrawal hierarchy changes depending on age:
+            # Ages retirement→71: RRSP meltdown first (maximize low-bracket withdrawals)
+            #                     then non-reg, TFSA last
+            # Ages 71+: RRIF mandatory minimum already set, non-reg fills gap, TFSA last
 
-            # Withdrawal hierarchy: non-reg first (tax advantaged vs RRSP),
-            # TFSA last (let it compound tax-free as long as possible)
-            non_reg_w = min(gap, non_reg)
-            remaining_gap = gap - non_reg_w
-            tfsa_w = min(remaining_gap, tfsa) if remaining_gap > 0 else 0
+            if current_age < 71:
+                # Meltdown phase: pull from RRSP first up to target bracket
+                # Target = top of 2nd federal bracket ($117,045) minus gov income
+                meltdown_target = max(0, 117045 - gov_income)
+                rrsp_withdrawal = min(meltdown_target, rrsp)
+                gap = max(0, annual_spending - gov_income - rrsp_withdrawal)
+                non_reg_w = min(gap, non_reg)
+                remaining_gap = gap - non_reg_w
+                tfsa_w = min(remaining_gap, tfsa) if remaining_gap > 0 else 0
+            else:
+                # Post-71: RRIF mandatory minimum already calculated above
+                gap = max(0, annual_spending - gov_income - rrsp_withdrawal)
+                non_reg_w = min(gap, non_reg)
+                remaining_gap = gap - non_reg_w
+                tfsa_w = min(remaining_gap, tfsa) if remaining_gap > 0 else 0
 
             # ── Tax calculation ──────────────────────────────
             # Taxable income = government benefits + RRSP/RRIF withdrawal
@@ -187,7 +199,9 @@ def run_cashflow(
             rrsp    = max(0, (rrsp    - rrsp_withdrawal) * (1 + mean_return))
             non_reg = max(0, (non_reg - non_reg_w)       * (1 + mean_return))
             # TFSA: add annual $7,000 new room contribution + growth - withdrawal
-            tfsa    = max(0, (tfsa - tfsa_w + ANNUAL_TFSA_ROOM)      * (1 + mean_return))
+            surplus = max(0, gov_income + rrsp_withdrawal - annual_spending - (fed + ont))
+            tfsa_top_up = min(surplus, ANNUAL_TFSA_ROOM)
+            tfsa    = max(0, (tfsa - tfsa_w + tfsa_top_up)      * (1 + mean_return))
 
             # Accumulate period totals
             period_cpp       += cpp_this_year

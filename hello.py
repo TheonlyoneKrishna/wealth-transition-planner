@@ -10,7 +10,7 @@ def future_value(present_value, annual_return, years):
     return present_value*(1+annual_return)**years
 
 # Calculates the amount client will recieve after selling the business
-def calculate_business_sale(proceeds, cost_base,lcge_available,marginal_rate):
+def calculate_business_sale(proceeds, cost_base,lcge_available):
     gross_gain = proceeds - cost_base
     if lcge_available>0:
         taxable_gain = max(0,gross_gain - lcge_available)
@@ -32,6 +32,10 @@ lcge_available = 1250000
 annual_contribution = 18000
 
 if __name__ == "__main__":
+    # ── TEST DEFAULTS — not client values ──────────────────
+    # These are illustrative inputs for standalone module testing only.
+    # All client inputs flow through app.py in production.
+    # ───────────────────────────────────────────────────────
     # Step 1: Calculate taxable income from business sale
     taxable_income = calculate_business_sale(proceeds, cost_base, lcge_available, 0)
 

@@ -52,8 +52,8 @@ def calculate_breakdown(cpp_at_65, early_age, late_age):
     }
 
 # A complete summary of CPP/OAS
-def cpp_oas_summary(cpp_at_65, other_retirement_income):
-    print(f"\nCPP/OAS Optimization Summary fro David Chen")
+def cpp_oas_summary(cpp_at_65, other_retirement_income, client_name="Client"):
+    print(f"\nCPP/OAS Optimization Summary for {client_name}")
     print("=" * 60)
     print(f"\nCPP at age 65: ${cpp_at_65:,.2f}/monthly")
     print(f"\n{'Start Age':<12}{'Monthly CPP':<18}{'Annual CPP'}")
@@ -83,8 +83,8 @@ def cpp_oas_summary(cpp_at_65, other_retirement_income):
         print(f"Other income:      ${other_retirement_income:,.0f}")
         print(f"OAS income:        ${oas_annual:,.0f}")
         print(f"Total income:      ${total_income:,.0f}")
-        print(f"Clawback amoount:  ${clawback:,.2f}")
-        print(f"Net OAS recieved:  ${oas_annual - clawback:,.2f}/year")
+        print(f"Clawback amount:  ${clawback:,.2f}")
+        print(f"Net OAS received:  ${oas_annual - clawback:,.2f}/year")
     else:
         print(f"No clawback - income ${total_income:,.0f} below threshold")
 

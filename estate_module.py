@@ -4,27 +4,18 @@
 from tax_engine import calculate_tax, FEDERAL_BRACKETS, ONTARIO_BRACKETS
 
 def calculate_estate(
-    portfolio_value,
-    rrsp_remaining,
+    portfolio_value,   
+    rrsp_remaining,       
     tfsa_value,
     death_age,
     retirement_age,
     annual_return,
     annual_spending,
     cpp_annual,
-    oas_annual
+    oas_annual,
 ):
     # Project portfolio from retirement to death
-    years_in_retirement = death_age - retirement_age
-    
-    # Simplified projection - average annual growth minus spending
-    # net of government income
-    net_annual_withdrawal = max(0, annual_spending - cpp_annual - oas_annual)
-    
-    projected_portfolio = portfolio_value
-    for year in range(years_in_retirement):
-        projected_portfolio = projected_portfolio * (1 + annual_return) - net_annual_withdrawal
-        projected_portfolio = max(0, projected_portfolio)
+    projected_portfolio = portfolio_value  # already terminal - no re-projection needed
     
     # RRSP/RRIF at death - fully taxable as income
     rrsp_tax = calculate_tax(rrsp_remaining, FEDERAL_BRACKETS) + \

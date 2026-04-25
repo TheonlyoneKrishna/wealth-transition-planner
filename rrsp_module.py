@@ -86,6 +86,10 @@ def print_meltdown_result(results):
         print(f"{r['age']:<6}${r['rrsp_withdrawal']:>10,.0f}  ${r['total_tax']:>10,.0f}  ${r['tfsa_accumulated']:>10,.0f}  ${r['non_reg_accumulated']:>10,.0f}  ${r['remaining_tfsa_room']:>13,.0f}  ${r['rrsp_balance']:>10,.0f}")
 
 if __name__ == "__main__":
+    # ── TEST DEFAULTS — not client values ──────────────────
+    # These are illustrative inputs for standalone module testing only.
+    # All client inputs flow through app.py in production.
+    # ───────────────────────────────────────────────────────
     results = rrsp_meltdown(
         rrsp_balance=800000,
         start_age=60,

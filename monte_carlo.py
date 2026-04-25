@@ -6,7 +6,7 @@ from tax_engine import calculate_tax, FEDERAL_BRACKETS, ONTARIO_BRACKETS
 
 # Simulation parameters
 NUM_SCENARIOS = 1000
-np.random.seed(42)  # makes results reproducible
+
 
 # Runs monte calro with 1000 scenarios gives the complete picture with percentile and success rate
 def run_monte_carlo(
@@ -23,6 +23,7 @@ def run_monte_carlo(
     mean_inflation,
     std_inflation
 ):
+    np.random.seed(42)  # makes results reproducible
     years = life_expectancy - retirement_age
     success_count = 0
     all_portfolios = []
@@ -44,6 +45,20 @@ def run_monte_carlo(
             oas_income = oas_annual if current_age >= oas_start_age else 0
             government_income = cpp_income + oas_income
 
+            # RRIF mandatory minimum withdrawal (age 71+)
+            RRIF_FACTORS = {
+                    71: 0.0528, 72: 0.0540, 73: 0.0553, 74: 0.0567,
+                    75: 0.0582, 76: 0.0598, 77: 0.0617, 78: 0.0636,
+                    79: 0.0658, 80: 0.0682, 81: 0.0708, 82: 0.0738,
+                    83: 0.0771, 84: 0.0808, 85: 0.0851, 86: 0.0899,
+                    87: 0.0955, 88: 0.1021, 89: 0.1099, 90: 0.1192,
+                    95: 0.2000
+                }
+            rrif_withdrawal = 0
+            if current_age >= 71 and balance > 0:
+                    factor = RRIF_FACTORS.get(min(current_age, 95), 0.20)
+                    rrif_withdrawal = balance * factor
+
             # Adjust spending for cumulative inflation
             inflation_factor = np.prod(1 + annual_inflations[:year+1])
             real_spending = annual_spending * inflation_factor
@@ -52,10 +67,15 @@ def run_monte_carlo(
             net_withdrawal = max(0, real_spending - government_income)
 
             # Tax on government income
-            if government_income > 0:
-                tax = calculate_tax(government_income, FEDERAL_BRACKETS) + \
-                      calculate_tax(government_income, ONTARIO_BRACKETS)
+            taxable_income = government_income + rrif_withdrawal
+            if taxable_income > 0:
+                tax = calculate_tax(taxable_income, FEDERAL_BRACKETS) + \
+                    calculate_tax(taxable_income, ONTARIO_BRACKETS)
                 net_withdrawal += tax
+            else:
+                tax=0
+
+            net_withdrawal = max(0, net_withdrawal +tax - rrif_withdrawal)  # RRIF already withdrawn
 
             # Portfolio grows then we withdraw
             balance = balance * (1 + annual_returns[year]) - net_withdrawal
@@ -67,7 +87,8 @@ def run_monte_carlo(
                 break
 
             portfolio_path.append(round(balance, 2))
-
+           
+            
         if not failed:
             success_count += 1
 
@@ -97,6 +118,10 @@ def run_monte_carlo(
     }
 
 if __name__ == "__main__":
+    # ── TEST DEFAULTS — not client values ──────────────────
+    # These are illustrative inputs for standalone module testing only.
+    # All client inputs flow through app.py in production.
+    # ───────────────────────────────────────────────────────
     results = run_monte_carlo(
         portfolio_value=3130199,
         annual_spending=120000,
