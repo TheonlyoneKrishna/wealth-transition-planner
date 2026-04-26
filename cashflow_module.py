@@ -144,10 +144,11 @@ def run_cashflow(
             # OAS clawback: 15 cents clawed back per dollar above $95,323
             # Check against total income approximation (will refine with actual income below)
             if oas_this_year > 0:
-                approx_total = cpp_this_year + oas_this_year
-                if approx_total > 95323:
-                    clawback = (approx_total - 95323) * 0.15
+                actual_taxable = gov_income + rrsp_withdrawal + (non_reg_w * 0.25)
+                if actual_taxable > 95323:
+                    clawback = min((actual_taxable - 95323) * 0.15, oas_this_year)
                     oas_this_year = max(0, oas_this_year - clawback)
+                    gov_income = cpp_this_year + oas_this_year
 
             gov_income = cpp_this_year + oas_this_year
 

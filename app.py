@@ -427,7 +427,6 @@ rrsp_at_retirement    = last_pre_ret['rrsp_balance']
 tfsa_at_retirement    = last_pre_ret['tfsa_balance']
 non_reg_at_retirement = last_pre_ret['non_reg_balance']
 portfolio_start       = rrsp_at_retirement + tfsa_at_retirement + non_reg_at_retirement
-import streamlit as st
 
 # Step 5: RRSP meltdown — uses cashflow-derived RRSP balance at retirement
 # Dynamic meltdown target — one bracket above employment income
@@ -646,6 +645,11 @@ with tab2:
 
     # Build inflation adjustment factors per period
     # Each period is 5 years — cumulative inflation compounds
+    cumulative_years = 0
+    inflation_factors = []
+    for r in cashflow_rows:
+        cumulative_years += 5
+        inflation_factors.append((1 + mean_inflation) ** cumulative_years)
     if show_real:
         inflation_factors = []
         cumulative_years = 0
@@ -1128,8 +1132,9 @@ with tab7:
         cpp_start_age=cpp_start_age,
         oas_start_age=oas_start_age,
         annual_spending=s_annual_spending,
-        current_tfsa_room=current_tfsa_room,
-        tfsa_balance_today=tfsa_balance_today,
+        current_tfsa_room=effective_tfsa_room,
+        tfsa_balance_today=effective_tfsa_balance,
+        non_reg_balance_today=non_reg_balance_today
     )
 
     s_retirement_row = next(r for r in s_cashflow_rows if r['phase'] == 'retirement')

@@ -21,7 +21,10 @@ def get_saved_clients():
 
 def name_to_filename(client_name):
     # Converts "David Chen" → "clients/david_chen.json"
-    safe_name = client_name.strip().lower().replace(" ", "_")
+    import re
+    safe_name = re.sub(r'[^\w\s-]', '', client_name.strip().lower())
+    safe_name = re.sub(r'[\s]+', '_', safe_name)
+    safe_name = safe_name.strip('_')
     return os.path.join(CLIENTS_DIR, f"{safe_name}.json")
 
 def save_client(client_name, data):

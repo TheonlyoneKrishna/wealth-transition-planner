@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # All client inputs flow through app.py in production.
     # ───────────────────────────────────────────────────────
     # Step 1: Calculate taxable income from business sale
-    taxable_income = calculate_business_sale(proceeds, cost_base, lcge_available, 0)
+    taxable_income = calculate_business_sale(proceeds, cost_base, lcge_available)
 
     #Step 2: Feed that into the real tax engine
     federal_tax = calculate_tax(taxable_income, FEDERAL_BRACKETS)

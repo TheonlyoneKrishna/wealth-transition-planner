@@ -61,7 +61,7 @@ def rrsp_meltdown(
         remaining_tfsa_room = remaining_tfsa_room - tfsa_contribution + annual_new_tfsa_room
 
         # RRSP balance grows then we subtract withdrawal
-        current_balance = (current_balance * (1 + annual_return)) - rrsp_withdrawal
+        current_balance = max(0,(current_balance - rrsp_withdrawal) * (1 + annual_return))
 
         results.append({
             'age': age,

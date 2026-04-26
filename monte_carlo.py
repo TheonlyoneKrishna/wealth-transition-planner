@@ -4,6 +4,17 @@
 import numpy as np
 from tax_engine import calculate_tax, FEDERAL_BRACKETS, ONTARIO_BRACKETS
 
+# RRIF mandatory minimum withdrawal (age 71+)
+RRIF_FACTORS = {
+65: 0.0400, 66: 0.0417, 67: 0.0435, 68: 0.0455, 69: 0.0476,
+70: 0.0500, 71: 0.0528, 72: 0.0540, 73: 0.0553, 74: 0.0567,
+75: 0.0582, 76: 0.0598, 77: 0.0617, 78: 0.0636, 79: 0.0658,
+80: 0.0682, 81: 0.0708, 82: 0.0738, 83: 0.0771, 84: 0.0808,
+85: 0.0851, 86: 0.0899, 87: 0.0955, 88: 0.1021, 89: 0.1099,
+90: 0.1192, 91: 0.1306, 92: 0.1449, 93: 0.1634, 94: 0.1879,
+95: 0.2000
+}
+
 # Simulation parameters
 NUM_SCENARIOS = 1000
 
@@ -45,15 +56,7 @@ def run_monte_carlo(
             oas_income = oas_annual if current_age >= oas_start_age else 0
             government_income = cpp_income + oas_income
 
-            # RRIF mandatory minimum withdrawal (age 71+)
-            RRIF_FACTORS = {
-                    71: 0.0528, 72: 0.0540, 73: 0.0553, 74: 0.0567,
-                    75: 0.0582, 76: 0.0598, 77: 0.0617, 78: 0.0636,
-                    79: 0.0658, 80: 0.0682, 81: 0.0708, 82: 0.0738,
-                    83: 0.0771, 84: 0.0808, 85: 0.0851, 86: 0.0899,
-                    87: 0.0955, 88: 0.1021, 89: 0.1099, 90: 0.1192,
-                    95: 0.2000
-                }
+            
             rrif_withdrawal = 0
             if current_age >= 71 and balance > 0:
                     factor = RRIF_FACTORS.get(min(current_age, 95), 0.20)
@@ -75,7 +78,7 @@ def run_monte_carlo(
             else:
                 tax=0
 
-            net_withdrawal = max(0, net_withdrawal +tax - rrif_withdrawal)  # RRIF already withdrawn
+            net_withdrawal = max(0, net_withdrawal - rrif_withdrawal)  # RRIF already withdrawn
 
             # Portfolio grows then we withdraw
             balance = balance * (1 + annual_returns[year]) - net_withdrawal
