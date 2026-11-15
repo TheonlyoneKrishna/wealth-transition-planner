@@ -1,0 +1,49 @@
+# Keeps the Streamlit Community Cloud app awake.
+# Put this file in your app's GitHub repo at: .github/workflows/keepalive.yml
+# It opens the app every 6 hours in a real browser and clicks the wake-up
+# button if the app has gone to sleep. You can also run it by hand from the
+# repo's Actions tab ("Run workflow").
+
+name: Keep Streamlit app awake
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours, at minute 17 (UTC)
+  workflow_dispatch: {}      # lets you run it manually
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Open the app and wake it if asleep
+        env:
+          APP_URL: https://wealth-transition-planner-c2kot39re4uanmzsfqrpzj.streamlit.app/
+        run: |
+          python - <<'PY'
+          import os
+          from playwright.sync_api import sync_playwright
+
+          url = os.environ["APP_URL"]
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page()
+              page.goto(url, wait_until="domcontentloaded", timeout=90_000)
+              page.wait_for_timeout(8_000)
+
+              # Streamlit's sleep screen shows a button to restart the app.
+              wake = page.get_by_role("button", name="Yes, get this app back up!")
+              if wake.count() > 0:
+                  print("App was asleep, waking it up...")
+                  wake.first.click()
+                  page.wait_for_timeout(60_000)  # give it time to boot
+              else:
+                  print("App is awake.")
+
+              browser.close()
+          PY
